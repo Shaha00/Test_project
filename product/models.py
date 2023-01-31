@@ -36,14 +36,14 @@ class Product(models.Model):
         return self.quantity
 
     @property
-    def rating(self):
+    def reting(self):
         count = self.product_reviews.count()
         if count == 0:
             return 0
         total = 0
         for i in self.product_reviews.all():
             total += i.stars
-        return total/count
+        return total / count
 
 
 CHOICES = (

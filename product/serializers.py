@@ -28,7 +28,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = 'id product_reviews rating title price category tag_list'.split()
+        fields = 'id product_reviews title price category tag_list'.split()
         # exclude = 'text'.split()
 
     def get_tag_list(self, product_object):
