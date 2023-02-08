@@ -64,8 +64,9 @@ class ProductValidateSerializer(serializers.Serializer):
         return category_id
 
     def validate_tags(self, tags):
-        tags_id = [i[0] for i in Tag.objects.all().values_list('id')]
-        for t in tags:
-            if t not in tags_id:
-                raise ValidationError(f"Category with ({t}) does not exists")
+        tags_id = set(i[0] for i in Tag.objects.all().values_list('id'))
+        invalid_tags = set(tags).difference(tags_id)
+        if invalid_tags:
+            raise ValidationError(f"Category with ({', '.join(map(str, invalid_tags))}) does not exists")
         return tags
+
