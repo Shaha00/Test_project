@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import ProductSerializer, ProductDetailSerializer
+from .serializers import ProductSerializer, ProductDetailSerializer, ProductValidateSerializer
 from .models import Product
 from rest_framework import status
 
@@ -12,11 +12,15 @@ def products_view(request):
         serializer = ProductSerializer(products, many=True)
         return Response(data=serializer.data)
     elif request.method == 'POST':
-        title = request.data.get('title')
-        price = request.data.get('price')
-        quantity = request.data.get('quantity')
-        category_id = request.data.get('category_id')
-        tags = request.data.get('tags')
+        serializer = ProductValidateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(data={"errors": serializer.errors},
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
+        title = serializer.validated_data.get('title')
+        price = serializer.validated_data.get('price')
+        quantity = serializer.validated_data.get('quantity')
+        category_id = serializer.validated_data.get('category_id')
+        tags = serializer.validated_data.get('tags')
 
         product = Product.objects.create(title=title, price=price, quantity=quantity, category_id=category_id)
 
@@ -40,11 +44,13 @@ def product_detail_view(request, id):
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     else:
-        title = request.data.get('title')
-        price = request.data.get('price')
-        quantity = request.data.get('quantity')
-        category_id = request.data.get('category_id')
-        tags = request.data.get('tags')
+        serializer = ProductValidateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        title = serializer.validated_data.get('title')
+        price = serializer.validated_data.get('price')
+        quantity = serializer.validated_data.get('quantity')
+        category_id = serializer.validated_data.get('category_id')
+        tags = serializer.validated_data.get('tags')
 
         product.title = title
         product.price = price

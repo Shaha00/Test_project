@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Product, Category, Tag, Review
+from rest_framework.exceptions import ValidationError
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -44,3 +45,27 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = 'id category tags title price created updated is_active text'.split()
+
+
+class ProductValidateSerializer(serializers.Serializer):
+    title = serializers.CharField(min_length=1, max_length=1000)
+    price = serializers.FloatField(min_value=1, max_value=1000000)
+    quantity = serializers.IntegerField(default=0)
+    category_id = serializers.IntegerField()
+    tags = serializers.ListField(child=serializers.IntegerField(
+        min_value=1
+    ))
+
+    def validate_category_id(self, category_id):  # 100
+        try:
+            Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            raise ValidationError(f"Category with ({category_id}) does not exists")
+        return category_id
+
+    def validate_tags(self, tags):
+        tags_id = [i[0] for i in Tag.objects.all().values_list('id')]
+        for t in tags:
+            if t not in tags_id:
+                raise ValidationError(f"Category with ({t}) does not exists")
+        return tags
